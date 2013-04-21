@@ -107,10 +107,7 @@ static void scan_mime_list(void)
 		plugin = (GstPlugin *) (plugins->data);
 		plugins = g_list_next(plugins);
 
-		features =
-		    gst_registry_get_feature_list_by_plugin(registry,
-							    gst_plugin_get_name
-							    (plugin));
+		features = gst_registry_get_feature_list_by_plugin(registry, gst_plugin_get_name(plugin));
 
 		while (features) {
 			GstPluginFeature *feature;

@@ -75,8 +75,7 @@ upnp_add_response(struct action_event *event, char *key, const char *value)
 		goto out;
 	}
 
-	rc =
-		UpnpAddToActionResponse(&event->request->ActionResult,
+	rc = UpnpAddToActionResponse(&event->request->ActionResult,
 				event->request->ActionName,
 				event->service->type, key, val);
 	if (rc != UPNP_E_SUCCESS) {
@@ -276,6 +275,7 @@ static int handle_action_request(struct Upnp_Action_Request *ar_event)
 		event.status = 0;
 		event.service = event_service;
 
+		printf("action %s\n", event_action->action_name);
 		rc = (event_action->callback) (&event);
 		if (rc == 0) {
 			ar_event->ErrCode = UPNP_E_SUCCESS;

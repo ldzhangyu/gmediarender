@@ -76,11 +76,11 @@ static struct action connmgr_actions[];
 static struct argument *arguments_getprotocolinfo[] = {
 	& (struct argument) { "Source", PARAM_DIR_OUT, CONNMGR_VAR_SRC_PROTO_INFO },
 	& (struct argument) { "Sink", PARAM_DIR_OUT, CONNMGR_VAR_SINK_PROTO_INFO },
-        NULL
+	NULL
 };
 static struct argument *arguments_getcurrentconnectionids[] = {
 	& (struct argument) { "ConnectionIDs", PARAM_DIR_OUT, CONNMGR_VAR_CUR_CONN_IDS },
-        NULL
+	NULL
 };
 static struct argument *arguments_setcurrentconnectioninfo[] = {
 	& (struct argument) { "ConnectionID", PARAM_DIR_IN, CONNMGR_VAR_AAT_CONN_ID },
@@ -91,7 +91,7 @@ static struct argument *arguments_setcurrentconnectioninfo[] = {
 	& (struct argument) { "PeerConnectionID", PARAM_DIR_OUT, CONNMGR_VAR_AAT_CONN_ID },
 	& (struct argument) { "Direction", PARAM_DIR_OUT, CONNMGR_VAR_AAT_DIR },
 	& (struct argument) { "Status", PARAM_DIR_OUT, CONNMGR_VAR_AAT_CONN_STATUS },
-        NULL
+	NULL
 };
 //static struct argument *arguments_prepareforconnection[] = {
 //	& (struct argument) { "RemoteProtocolInfo", PARAM_DIR_IN, CONNMGR_VAR_AAT_PROTO_INFO },
@@ -221,7 +221,7 @@ int connmgr_init(void)
 	p = buf;
 	if (buf == NULL) {
 		fprintf(stderr, "%s: initial malloc failed\n",
-			__FUNCTION__);
+				__FUNCTION__);
 		goto out;
 	}
 
@@ -231,7 +231,7 @@ int connmgr_init(void)
 		buf = realloc(buf, bufsize);
 		if (buf == NULL) {
 			fprintf(stderr, "%s: realloc failed\n",
-				__FUNCTION__);
+					__FUNCTION__);
 			goto out;
 		}
 		p = buf;
@@ -251,6 +251,7 @@ int connmgr_init(void)
 
 	connmgr_values[CONNMGR_VAR_SINK_PROTO_INFO] = buf;
 	//connmgr_values[CONNMGR_VAR_SRC_PROTO_INFO] = buf;
+	printf("sink buf is %s\n", buf);
 
 	result = 0;
 out:
@@ -304,30 +305,30 @@ static int get_current_conn_info(struct action_event *event)
 	if (rc)
 		goto out;
 	rc = upnp_append_variable(event, CONNMGR_VAR_AAT_AVT_ID,
-				  "AVTransportID");
+			"AVTransportID");
 	if (rc)
 		goto out;
 	rc = upnp_append_variable(event, CONNMGR_VAR_AAT_PROTO_INFO,
-				  "ProtocolInfo");
+			"ProtocolInfo");
 	if (rc)
 		goto out;
 	rc = upnp_append_variable(event, CONNMGR_VAR_AAT_CONN_MGR,
-				  "PeerConnectionManager");
+			"PeerConnectionManager");
 	if (rc)
 		goto out;
 	rc = upnp_append_variable(event, CONNMGR_VAR_AAT_CONN_ID,
-				  "PeerConnectionID");
+			"PeerConnectionID");
 	if (rc)
 		goto out;
 	rc = upnp_append_variable(event, CONNMGR_VAR_AAT_DIR, "Direction");
 	if (rc)
 		goto out;
 	rc = upnp_append_variable(event, CONNMGR_VAR_AAT_CONN_STATUS,
-				  "Status");
+			"Status");
 	if (rc)
 		goto out;
 
-      out:
+out:
 	LEAVE();
 	return rc;
 }
@@ -343,18 +344,18 @@ static struct action connmgr_actions[] = {
 };
 
 struct service connmgr_service = {
-        .service_name =		CONNMGR_SERVICE,
-        .type =			CONNMGR_TYPE,
+	.service_name =		CONNMGR_SERVICE,
+	.type =			CONNMGR_TYPE,
 	.scpd_url =		CONNMGR_SCPD_URL,
 	.control_url =		CONNMGR_CONTROL_URL,
 	.event_url =		CONNMGR_EVENT_URL,
-        .actions =		connmgr_actions,
-        .action_arguments =     argument_list,
-        .variable_names =       connmgr_variables,
-        .variable_values =      connmgr_values,
-        .variable_meta =        connmgr_var_meta,
-        .variable_count =       CONNMGR_VAR_UNKNOWN,
-        .command_count =        CONNMGR_CMD_UNKNOWN,
-        .service_mutex =        &connmgr_mutex
+	.actions =		connmgr_actions,
+	.action_arguments =     argument_list,
+	.variable_names =       connmgr_variables,
+	.variable_values =      connmgr_values,
+	.variable_meta =        connmgr_var_meta,
+	.variable_count =       CONNMGR_VAR_UNKNOWN,
+	.command_count =        CONNMGR_CMD_UNKNOWN,
+	.service_mutex =        &connmgr_mutex
 };
 

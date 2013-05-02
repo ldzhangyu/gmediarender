@@ -612,7 +612,7 @@ static int obtain_instanceid(struct action_event *event, int *instance)
 				"Missing InstanceID");
 		return -1;
 	}
-//	printf("%s: InstanceID='%s'\n", __FUNCTION__, value);
+	//printf("%s: InstanceID='%s'\n", __FUNCTION__, value);
 	free(value);
 
 	// TODO - parse value, and store in *instance, if instance!=NULL
@@ -867,16 +867,70 @@ static int play(struct action_event *event)
 			// Set TransportPlaySpeed to '1'
 			break;
 		case TRANSPORT_STOPPED:
-		case TRANSPORT_PAUSED_PLAYBACK:
-			if (output_play()) {
+			if(output_play()){
 				upnp_set_error(event, 704, "Playing failed");
 				rc = -1;
 			} else {
 				transport_state = TRANSPORT_PLAYING;
 				change_var(event, TRANSPORT_VAR_TRANSPORT_STATE,
 						"PLAYING");
-
 			}
+			// Set TransportPlaySpeed to '1'
+			break;
+		case TRANSPORT_PAUSED_PLAYBACK:
+			if (output_play_continue()) {
+				upnp_set_error(event, 704, "Playing failed");
+				rc = -1;
+			} else {
+				transport_state = TRANSPORT_PLAYING;
+				change_var(event, TRANSPORT_VAR_TRANSPORT_STATE,
+						"PLAYING");
+			}
+			// Set TransportPlaySpeed to '1'
+			break;
+
+		case TRANSPORT_NO_MEDIA_PRESENT:
+		case TRANSPORT_TRANSITIONING:
+		case TRANSPORT_PAUSED_RECORDING:
+		case TRANSPORT_RECORDING:
+			/* action not allowed in these states - error 701 */
+			upnp_set_error(event, UPNP_TRANSPORT_E_TRANSITION_NA,
+					"Transition not allowed");
+			rc = -1;
+
+			break;
+	}
+	ithread_mutex_unlock(&transport_mutex);
+
+	LEAVE();
+
+	return rc;
+}
+
+static int upnp_pause(struct action_event *event)
+{
+	int rc = 0;
+
+	ENTER();
+
+	if (obtain_instanceid(event, NULL)) {
+		LEAVE();
+		return -1;
+	}
+
+	ithread_mutex_lock(&transport_mutex);
+	switch (transport_state) {
+		case TRANSPORT_PLAYING:
+			if(output_pause() != 0){
+				upnp_set_error(event, 704, "Playing failed");
+				rc = -1;
+			} else {
+				transport_state = TRANSPORT_PAUSED_PLAYBACK;
+				change_var(event, TRANSPORT_VAR_TRANSPORT_STATE, "PAUSED_PLAYBACK");
+			}
+			break;
+		case TRANSPORT_STOPPED:
+		case TRANSPORT_PAUSED_PLAYBACK:
 			// Set TransportPlaySpeed to '1'
 			break;
 
@@ -952,7 +1006,7 @@ static struct action transport_actions[] = {
 	[TRANSPORT_CMD_GETTRANSPORTSETTINGS] =      {"GetTransportSettings", get_transport_settings},
 	[TRANSPORT_CMD_STOP] =                      {"Stop", stop},
 	[TRANSPORT_CMD_PLAY] =                      {"Play", play},
-	[TRANSPORT_CMD_PAUSE] =                     {"Pause", NULL},	/* optional */
+	[TRANSPORT_CMD_PAUSE] =                     {"Pause", upnp_pause},	/* optional */
 	//[TRANSPORT_CMD_RECORD] =                    {"Record", NULL},	/* optional */
 	[TRANSPORT_CMD_SEEK] =                      {"Seek", seek},
 	[TRANSPORT_CMD_NEXT] =                      {"Next", next},

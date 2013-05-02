@@ -279,7 +279,7 @@ static int handle_action_request(struct Upnp_Action_Request *ar_event)
 		rc = (event_action->callback) (&event);
 		if (rc == 0) {
 			ar_event->ErrCode = UPNP_E_SUCCESS;
-			printf("Action was a success!\n");
+//			printf("Action was a success!\n");
 		}
 		if (ar_event->ActionResult == NULL) {
 			ar_event->ActionResult =
@@ -328,6 +328,22 @@ static int event_handler(Upnp_EventType EventType, void *event,
 	return 0;
 }
 
+void yu_write_fiile(char *buf, int i)
+{
+	FILE *fp = NULL;
+	char dir[100] = "/opt/gstreamer/gmediarender/yu/"; 
+	char file[10] = "";
+
+	sprintf(file, "%d.xml", i);
+	strcat(dir, file);
+	if(NULL == (fp = fopen(dir, "w+")))
+	{
+		printf("open error\n");
+		return;
+	}
+	fprintf(fp, "%s", buf);
+	fclose(fp);
+}
 
 int upnp_device_init(struct device *device_def, char *ip_address)
 {
@@ -358,6 +374,7 @@ int upnp_device_init(struct device *device_def, char *ip_address)
 	for (i=0; (srv = upnp_device->services[i]); i++) {
 		buf = upnp_get_scpd(srv);
 		printf("registering '%s'\n", srv->scpd_url);
+		yu_write_fiile(buf, i);
 		webserver_register_buf(srv->scpd_url,buf,"text/xml");
 	}
 

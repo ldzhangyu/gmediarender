@@ -612,7 +612,7 @@ static int obtain_instanceid(struct action_event *event, int *instance)
 				"Missing InstanceID");
 		return -1;
 	}
-	printf("%s: InstanceID='%s'\n", __FUNCTION__, value);
+//	printf("%s: InstanceID='%s'\n", __FUNCTION__, value);
 	free(value);
 
 	// TODO - parse value, and store in *instance, if instance!=NULL

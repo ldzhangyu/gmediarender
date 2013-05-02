@@ -204,6 +204,21 @@ int output_pause(void)
 
 }
 
+gboolean output_position(char *time)
+{
+	GstFormat fmt = GST_FORMAT_TIME;
+	gint64 pos, len;
+
+	if (gst_element_query_position (play, &fmt, &pos) && gst_element_query_duration (play, &fmt, &len)) {
+		//printf ("Time: %" GST_TIME_FORMAT " / %" GST_TIME_FORMAT "\r", GST_TIME_ARGS (pos), GST_TIME_ARGS (len));
+		printf(GST_TIME_FORMAT, GST_TIME_ARGS (pos));
+		printf("\n");
+		printf("pos is %llx\n", pos);
+	}
+
+	/* call me again */
+	return 0;
+}
 
 int output_loop()
 {
@@ -233,6 +248,7 @@ static const char *gststate_get_name(GstState state)
 		return "Unknown";
 	}
 }
+
 
 static gboolean my_bus_callback(GstBus * bus, GstMessage * msg,
 				gpointer data)

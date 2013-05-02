@@ -31,5 +31,6 @@ int output_play(void);
 int output_stop(void);
 int output_pause(void);
 int output_loop(void);
+gboolean output_position(void);
 
 #endif /*  _OUTPUT_GSTREAMER_H */

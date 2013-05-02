@@ -167,7 +167,7 @@ static char *transport_values[] = {
 	[TRANSPORT_VAR_AV_URI_META] = "",
 	[TRANSPORT_VAR_NEXT_AV_URI] = "",
 	[TRANSPORT_VAR_NEXT_AV_URI_META] = "",
-	[TRANSPORT_VAR_REL_TIME_POS] = "NOT_IMPLEMENTED",
+	[TRANSPORT_VAR_REL_TIME_POS] = "",
 	[TRANSPORT_VAR_ABS_TIME_POS] = "NOT_IMPLEMENTED",
 	[TRANSPORT_VAR_REL_CTR_POS] = "2147483647",
 	[TRANSPORT_VAR_ABS_CTR_POS] = "2147483647",
@@ -770,6 +770,11 @@ static int get_position_info(struct action_event *event)
 			"TrackURI");
 	if (rc)
 		goto out;
+
+	//if(strcmp(transport_values[TRANSPORT_VAR_REL_TIME_POS], "") == 0)
+	//	transport_values[TRANSPORT_VAR_REL_TIME_POS] = calloc(100, 1);
+
+	output_position(transport_values[TRANSPORT_VAR_REL_TIME_POS]);
 
 	rc = upnp_append_variable(event, TRANSPORT_VAR_REL_TIME_POS,
 			"RelTime");

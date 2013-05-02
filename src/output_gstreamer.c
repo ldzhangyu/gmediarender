@@ -168,6 +168,20 @@ out:
 	return result;
 }
 
+int output_play_continue(void)
+{
+	int result = -1;
+	ENTER();
+	if (gst_element_set_state(play, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
+		printf("setting play state failed\n");
+		goto out;
+	} 
+	result = 0;
+out:
+	LEAVE();
+	return result;
+}
+
 int output_stop(void)
 {
 	if (gst_element_set_state(play, GST_STATE_READY) ==

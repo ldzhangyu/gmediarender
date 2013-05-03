@@ -31,6 +31,7 @@ int output_play(void);
 int output_stop(void);
 int output_pause(void);
 int output_loop(void);
-gboolean output_position(void);
+int output_position(char *time);
+int output_seek(int time_seconds);
 
 #endif /*  _OUTPUT_GSTREAMER_H */

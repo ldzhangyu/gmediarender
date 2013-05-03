@@ -39,6 +39,7 @@
 #include "logging.h"
 #include "upnp_connmgr.h"
 #include "output_gstreamer.h"
+#include "upnp_transport.h"
 
 static void scan_caps(const GstCaps * caps)
 {
@@ -204,21 +205,32 @@ int output_pause(void)
 
 }
 
-gboolean output_position(char *time)
+#define UPNP_TIME_FORMAT "%02u:%02u:%02u"
+int output_position(char *time)
 {
 	GstFormat fmt = GST_FORMAT_TIME;
 	gint64 pos, len;
 
 	if (gst_element_query_position (play, &fmt, &pos) && gst_element_query_duration (play, &fmt, &len)) {
 		//printf ("Time: %" GST_TIME_FORMAT " / %" GST_TIME_FORMAT "\r", GST_TIME_ARGS (pos), GST_TIME_ARGS (len));
-		printf(GST_TIME_FORMAT, GST_TIME_ARGS (pos));
-		printf("\n");
-		printf("pos is %llx\n", pos);
+		sprintf(time, UPNP_TIME_FORMAT, GST_TIME_ARGS (pos));
 	}
 
 	/* call me again */
 	return 0;
 }
+
+int output_seek(int time_seconds)
+{
+	if (!gst_element_seek (play, 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH,
+				GST_SEEK_TYPE_SET, GST_SECOND*time_seconds,
+				GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE)) {
+		printf ("Seek failed!\n");
+		return -1;
+	}
+	return 0;
+}
+
 
 int output_loop()
 {
@@ -265,6 +277,7 @@ static gboolean my_bus_callback(GstBus * bus, GstMessage * msg,
 	switch (msgType) {
 	case GST_MESSAGE_EOS:
 		g_print("GStreamer: %s: End-of-stream\n", msgSrcName);
+		set_transport_state(TRANSPORT_STOPPED);
 		break;
 	case GST_MESSAGE_ERROR:{
 			gchar *debug;

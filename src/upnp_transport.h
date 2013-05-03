@@ -24,7 +24,17 @@
 #ifndef _UPNP_TRANSPORT_H
 #define _UPNP_TRANSPORT_H
 
+enum _transport_state {
+	TRANSPORT_STOPPED,
+	TRANSPORT_PLAYING,
+	TRANSPORT_TRANSITIONING,	/* optional */
+	TRANSPORT_PAUSED_PLAYBACK,	/* optional */
+	TRANSPORT_PAUSED_RECORDING,	/* optional */
+	TRANSPORT_RECORDING,	/* optional */
+	TRANSPORT_NO_MEDIA_PRESENT	/* optional */
+};
 extern struct service transport_service;
+int set_transport_state(enum _transport_state state);
 
 #define UPNP_TRANSPORT_E_TRANSITION_NA	701
 #define UPNP_TRANSPORT_E_NO_CONTENTS	702
@@ -37,6 +47,7 @@ extern struct service transport_service;
 #define UPNP_TRANSPORT_E_REC_MEDIA_FULL	709
 #define UPNP_TRANSPORT_E_SEEKMODE_NS	710
 #define UPNP_TRANSPORT_E_ILL_SEEKTARGET	711
+
 #define UPNP_TRANSPORT_E_PLAYMODE_NS	712
 #define UPNP_TRANSPORT_E_RECQUAL_NS	713
 #define UPNP_TRANSPORT_E_ILLEGAL_MIME	714

@@ -145,7 +145,7 @@ static const char *transport_variables[] = {
 	[TRANSPORT_VAR_UNKNOWN] = NULL
 };
 
-static char *transport_values[] = {
+const static char *transport_values_const[] = {
 	[TRANSPORT_VAR_TRANSPORT_STATE] = "STOPPED",
 	[TRANSPORT_VAR_TRANSPORT_STATUS] = "OK",
 	[TRANSPORT_VAR_PLAY_MEDIUM] = "UNKNOWN",
@@ -168,7 +168,7 @@ static char *transport_values[] = {
 	[TRANSPORT_VAR_NEXT_AV_URI] = "",
 	[TRANSPORT_VAR_NEXT_AV_URI_META] = "",
 	[TRANSPORT_VAR_REL_TIME_POS] = "",
-	[TRANSPORT_VAR_ABS_TIME_POS] = "NOT_IMPLEMENTED",
+	[TRANSPORT_VAR_ABS_TIME_POS] = "",
 	[TRANSPORT_VAR_REL_CTR_POS] = "2147483647",
 	[TRANSPORT_VAR_ABS_CTR_POS] = "2147483647",
 	[TRANSPORT_VAR_LAST_CHANGE] = "<Event xmlns=\"urn:schemas-upnp-org:metadata-1-0/AVT/\"/>",
@@ -179,6 +179,8 @@ static char *transport_values[] = {
 	[TRANSPORT_VAR_CUR_TRANSPORT_ACTIONS] = "Play,Stop",
 	[TRANSPORT_VAR_UNKNOWN] = NULL
 };
+
+static char *transport_values[TRANSPORT_VAR_UNKNOWN+1] = {NULL};
 
 static const char *transport_states[] = {
 	"STOPPED",
@@ -467,19 +469,7 @@ static struct argument **argument_list[] = {
 
 static ithread_mutex_t transport_mutex;
 
-enum _transport_state {
-	TRANSPORT_STOPPED,
-	TRANSPORT_PLAYING,
-	TRANSPORT_TRANSITIONING,	/* optional */
-	TRANSPORT_PAUSED_PLAYBACK,	/* optional */
-	TRANSPORT_PAUSED_RECORDING,	/* optional */
-	TRANSPORT_RECORDING,	/* optional */
-	TRANSPORT_NO_MEDIA_PRESENT	/* optional */
-};
-
 static enum _transport_state transport_state = TRANSPORT_STOPPED;
-
-
 
 static int get_media_info(struct action_event *event)
 {
@@ -584,15 +574,18 @@ static void change_var(struct action_event *event, int varnum,
 		return;
 	}
 
-	//if (transport_values[varnum]) {
-	//      free(transport_values[varnum]);
-	//}
+	if (transport_values[varnum]) {
+	      free(transport_values[varnum]);
+	}
 	transport_values[varnum] = strdup(new_value);
-	asprintf(&buf,
-			"<Event xmlns = \"urn:schemas-upnp-org:metadata-1-0/AVT/\"><InstanceID val=\"0\"><%s val=\"%s\"/></InstanceID></Event>",
-			transport_variables[varnum], xmlescape(transport_values[varnum], 1));
-	notify_lastchange(event, buf);
-	free(buf);
+	if(event != NULL)
+	{
+		asprintf(&buf,
+				"<Event xmlns = \"urn:schemas-upnp-org:metadata-1-0/AVT/\"><InstanceID val=\"0\"><%s val=\"%s\"/></InstanceID></Event>",
+				transport_variables[varnum], xmlescape(transport_values[varnum], 1));
+		notify_lastchange(event, buf);
+		free(buf);
+	}
 
 	LEAVE();
 
@@ -745,6 +738,7 @@ out:
 static int get_position_info(struct action_event *event)
 {
 	int rc;
+	char time[20] = "";
 	ENTER();
 
 	if (obtain_instanceid(event, NULL)) {
@@ -771,10 +765,9 @@ static int get_position_info(struct action_event *event)
 	if (rc)
 		goto out;
 
-	//if(strcmp(transport_values[TRANSPORT_VAR_REL_TIME_POS], "") == 0)
-	//	transport_values[TRANSPORT_VAR_REL_TIME_POS] = calloc(100, 1);
+	output_position(time);
 
-	output_position(transport_values[TRANSPORT_VAR_REL_TIME_POS]);
+	change_var(NULL, TRANSPORT_VAR_REL_TIME_POS, time);
 
 	rc = upnp_append_variable(event, TRANSPORT_VAR_REL_TIME_POS,
 			"RelTime");
@@ -960,11 +953,48 @@ static int upnp_pause(struct action_event *event)
 static int seek(struct action_event *event)
 {
 	int rc = 0;
+	int hour = 0, minuter = 0, second = 0;
+	char *value = NULL;
+	char *p = NULL;
+	int i = 0;
 	ENTER();
 
 	if (obtain_instanceid(event, NULL)) {
 		rc = -1;
 	}
+	value = upnp_get_string(event, "Unit");
+	if (value == NULL) {
+		upnp_set_error(event, UPNP_SOAP_E_INVALID_ARGS, "Missing Unit");
+		return -1;
+	}
+	printf("%s: Unit='%s'\n", __FUNCTION__, value);
+	if(strcmp(value, "REL_TIME") == 0)
+	{
+		free(value);
+		value = upnp_get_string(event, "Target");
+		if (value == NULL) {
+			upnp_set_error(event, UPNP_SOAP_E_INVALID_ARGS, "Missing Target");
+			return -1;
+		}
+		printf("%s: Target='%s'\n", __FUNCTION__, value);
+		p = strtok(value, ":");
+		hour = atoi(p);
+
+		for(i=0;i<2;i++)
+		{
+			p = strtok(NULL, ":");
+			if(0 == i)
+				minuter = atoi(p);
+			else if(1 == i)
+				second = atoi(p);
+		}
+		second = hour*60*60 + minuter*60 +second;
+
+		output_seek(second);
+		free(value);
+	}
+	else
+		free(value);
 
 	LEAVE();
 
@@ -997,6 +1027,33 @@ static int previous(struct action_event *event)
 	LEAVE();
 
 	return 0;
+}
+
+int set_transport_state(enum _transport_state state)
+{
+	transport_state = state;
+	switch (transport_state) {
+		case TRANSPORT_PLAYING:
+			change_var(NULL, TRANSPORT_VAR_TRANSPORT_STATE, "PLAYING");
+			break;
+
+		case TRANSPORT_STOPPED:
+			change_var(NULL, TRANSPORT_VAR_TRANSPORT_STATE, "STOPPED");
+			break;
+		default:
+			printf("state error\n");
+	}
+}
+
+int transport_init(void)
+{
+	int i = 0;
+
+	for(i=0;i<TRANSPORT_VAR_UNKNOWN;i++)
+	{
+		if(strdup(transport_values_const[i]) != NULL)
+			transport_values[i] = strdup(transport_values_const[i]);
+	}
 }
 
 

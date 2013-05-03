@@ -114,6 +114,7 @@ void upnp_renderer_dump_transport_scpd(void)
 
 static int upnp_renderer_init(void)
 {
+	transport_init();
 	return connmgr_init();
 }
 

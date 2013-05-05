@@ -33,5 +33,9 @@ int output_pause(void);
 int output_loop(void);
 int output_position(char *time);
 int output_seek(int time_seconds);
+int output_get_volume(gdouble *volume);
+int output_set_volume(gdouble volume);
+gboolean output_get_mute(void);
+int output_set_mute(gboolean mute);
 
 #endif /*  _OUTPUT_GSTREAMER_H */

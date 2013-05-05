@@ -231,6 +231,32 @@ int output_seek(int time_seconds)
 	return 0;
 }
 
+int output_get_volume(gdouble *volume)
+{
+	g_object_get (G_OBJECT (play), "volume", volume, NULL);
+	printf("volume %f\n", *volume);
+	return 0;
+}
+
+int output_set_volume(gdouble volume)
+{
+	g_object_set (G_OBJECT (play), "volume", volume, NULL);
+	return 0;
+}
+
+gboolean output_get_mute(void)
+{
+	gboolean mute = 0;
+	g_object_get (G_OBJECT (play), "mute", &mute, NULL);
+	printf("mute %d\n", mute);
+	return 0;
+}
+
+int output_set_mute(gboolean mute)
+{
+	g_object_set (G_OBJECT (play), "mute", mute, NULL);
+	return 0;
+}
 
 int output_loop()
 {
@@ -351,7 +377,7 @@ int output_gstreamer_init(void)
 
 	scan_mime_list();
 
-	play = gst_element_factory_make("playbin", "play");
+	play = gst_element_factory_make("playbin2", "play");
 
 	bus = gst_pipeline_get_bus(GST_PIPELINE(play));
 	gst_bus_add_watch(bus, my_bus_callback, NULL);

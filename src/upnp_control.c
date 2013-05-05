@@ -36,6 +36,7 @@
 #include "upnp.h"
 #include "upnp_control.h"
 #include "upnp_device.h"
+#include <gst/gst.h>
 
 //#define CONTROL_SERVICE "urn:upnp-org:serviceId:RenderingControl"
 #define CONTROL_SERVICE "urn:schemas-upnp-org:service:RenderingControl"
@@ -43,6 +44,8 @@
 #define CONTROL_SCPD_URL "/upnp/rendercontrolSCPD.xml"
 #define CONTROL_CONTROL_URL "/upnp/control/rendercontrol1"
 #define CONTROL_EVENT_URL "/upnp/event/rendercontrol1"
+
+static void set_var(int varnum, char *new_value);
 
 
 typedef enum {
@@ -200,7 +203,7 @@ static struct var_meta control_var_meta[] = {
 	[CONTROL_VAR_UNKNOWN] =			{ SENDEVENT_NO, DATATYPE_UNKNOWN, NULL, NULL }
 };
 
-static char *control_values[] = {
+static char *control_values_const[] = {
 	[CONTROL_VAR_LAST_CHANGE] = "<Event xmlns = \"urn:schemas-upnp-org:metadata-1-0/AVT/\"><InstanceID val=\"0\"></InstanceID></Event>",
 	[CONTROL_VAR_PRESET_NAME_LIST] = "",
 	[CONTROL_VAR_AAT_CHANNEL] = "",
@@ -224,6 +227,9 @@ static char *control_values[] = {
 	[CONTROL_VAR_LOUDNESS] = "0",
 	[CONTROL_VAR_UNKNOWN] = NULL
 };
+
+static char *control_values[CONTROL_VAR_COUNT] = {NULL};
+
 static ithread_mutex_t control_mutex;
 
 
@@ -552,14 +558,71 @@ static int get_vertical_keystone(struct action_event *event)
 static int get_mute(struct action_event *event)
 {
 	/* FIXME - Channel */
+	gboolean mute = 0;
+	mute = output_get_mute();
+	set_var(CONTROL_VAR_MUTE, mute);
 	return cmd_obtain_variable(event, CONTROL_VAR_MUTE, "CurrentMute");
 }
 
+static int set_mute(struct action_event *event)
+{
+	/* FIXME - Channel */
+	gboolean mute = 0;
+	char *value = NULL;
+	printf("mute %d\n", mute);
+
+	value = upnp_get_string(event, "DesiredMute");
+	if (value == NULL) {
+		return -1;
+	}
+	printf("mute %s\n", value);
+	set_var(CONTROL_VAR_MUTE, value);
+	mute = atoi(value);
+	output_set_mute(mute);
+	free(value);
+}
+
+#define DOUBLE_INT(x) (int)(x < 0 ? x - 0.5 : x + 0.5)
 static int get_volume(struct action_event *event)
 {
 	/* FIXME - Channel */
+	gdouble volume;
+	gdouble volume2 = 1.3;
+	int int_volume = 0;
+	int int_volume2 = 0;
+	char str_volume[10] = "";
+
+	//gst_stream_volume_get_volume(&volume, GST_STREAM_VOLUME_FORMAT_LINEAR);
+	output_get_volume(&volume);
+	volume2 = volume * 10.0;
+	printf("f volume %f\n", volume2);
+	int_volume = DOUBLE_INT(volume2);
+	int_volume2 = (int)(volume2 * 10.0);
+	//printf("voulme %s\n", str_volume);
+	printf("int_volume %d\n", int_volume);
+	printf("int_volume2 %d\n", int_volume2);
+	sprintf(str_volume,  "%d", int_volume);
+
+	set_var(CONTROL_VAR_VOLUME, str_volume);
 	return cmd_obtain_variable(event, CONTROL_VAR_VOLUME,
 			"CurrentVolume");
+}
+
+static int set_volume(struct action_event *event)
+{
+	/* FIXME - Channel */
+	char *value = NULL;
+	int int_volume = 0;
+
+	value = upnp_get_string(event, "DesiredVolume");
+	if (value == NULL) {
+		return -1;
+	}
+	printf("volume %s\n", value);
+	set_var(CONTROL_VAR_VOLUME, value);
+	int_volume = atoi(value);
+	output_set_volume(((gdouble)int_volume)/10);
+	free(value);
 }
 
 static int get_volume_db(struct action_event *event)
@@ -574,6 +637,25 @@ static int get_loudness(struct action_event *event)
 	/* FIXME - Channel */
 	return cmd_obtain_variable(event, CONTROL_VAR_LOUDNESS,
 			"CurrentLoudness");
+}
+
+static void set_var(int varnum, char *new_value)
+{
+	char *buf;
+
+	if ((varnum < 0) || (varnum >= CONTROL_VAR_UNKNOWN)) {
+		return;
+	}
+	if (new_value == NULL) {
+		return;
+	}
+
+	if (control_values[varnum]) {
+	      free(control_values[varnum]);
+	}
+	control_values[varnum] = strdup(new_value);
+
+	return;
 }
 
 
@@ -605,9 +687,9 @@ static struct action control_actions[] = {
 	[CONTROL_CMD_GET_VERT_KEYSTONE] =   	{"GetVerticalKeystone", get_vertical_keystone}, /* optional */
 	[CONTROL_CMD_SET_VERT_KEYSTONE] =   	{"SetVerticalKeystone", NULL}, /* optional */
 	[CONTROL_CMD_GET_MUTE] =            	{"GetMute", get_mute}, /* optional */
-	[CONTROL_CMD_SET_MUTE] =            	{"SetMute", NULL}, /* optional */
+	[CONTROL_CMD_SET_MUTE] =            	{"SetMute", set_mute}, /* optional */
 	[CONTROL_CMD_GET_VOL] =             	{"GetVolume", get_volume}, /* optional */
-	[CONTROL_CMD_SET_VOL] =             	{"SetVolume", NULL}, /* optional */
+	[CONTROL_CMD_SET_VOL] =             	{"SetVolume", set_volume}, /* optional */
 	[CONTROL_CMD_GET_VOL_DB] =          	{"GetVolumeDB", get_volume_db}, /* optional */
 	[CONTROL_CMD_SET_VOL_DB] =          	{"SetVolumeDB", NULL}, /* optional */
 	[CONTROL_CMD_GET_VOL_DBRANGE] =     	{"GetVolumeDBRange", NULL}, /* optional */
@@ -635,4 +717,11 @@ struct service control_service = {
 
 void control_init(void)
 {
+	int i = 0;
+
+	for(i=0;i<CONTROL_VAR_UNKNOWN;i++)
+	{
+		if(strdup(control_values_const[i]) != NULL)
+			control_values[i] = strdup(control_values_const[i]);
+	}
 }

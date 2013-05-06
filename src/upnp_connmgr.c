@@ -133,7 +133,8 @@ static const char *connmgr_variables[] = {
 
 static char *connmgr_values[] = {
 	[CONNMGR_VAR_SRC_PROTO_INFO] = "",
-	[CONNMGR_VAR_SINK_PROTO_INFO] = "http-get:*:audio/mpeg:*",
+	//[CONNMGR_VAR_SINK_PROTO_INFO] = "http-get:*:audio/mpeg:*",
+	[CONNMGR_VAR_SINK_PROTO_INFO] = "http-get:*:audio/x-sid:*,http-get:*:audio/x-nellymoser:*,http-get:*:audio/x-private1-ac3:*,http-get:*:audio/x-opus:*,http-get:*:audio/x-siren:*,http-get:*:audio/x-gsm:*,http-get:*:audio/G729:*,http-get:*:audio/G723:*,http-get:*:audio/G722:*,http-get:*:audio/x-iLBC:*,http-get:*:audio/x-celt:*,http-get:*:audio/x-bv:*,http-get:*:audio/x-au:*,http-get:*:audio/x-lpcm:*,http-get:*:audio/x-private1-lpcm:*,http-get:*:audio/x-wavpack-correction:*,http-get:*:audio/x-wavpack:*,http-get:*:audio/ac3:*,http-get:*:audio/x-amr-wb-sh:*,http-get:*:audio/x-amr-nb-sh:*,http-get:*:audio/x-iec958:*,http-get:*:audio/x-wma:*,http-get:*:audio/x-pn-realaudio:*,http-get:*:audio/x-tta:*,http-get:*:audio/x-speex:*,http-get:*:audio/x-flac:*,http-get:*:audio/x-dts:*,http-get:*:audio/x-eac3:*,http-get:*:audio/x-ac3:*,http-get:*:audio/x-vorbis:*,http-get:*:audio/x-alac:*,http-get:*:audio/AMR-WB:*,http-get:*:audio/AMR:*,http-get:*:audio/x-adpcm:*,http-get:*:audio/x-m4a:*,http-get:*:audio/x-wav:*,http-get:*:audio/x-mpeg:*,http-get:*:audio/mpeg:*,http-get:*:audio/x-sbc:*,http-get:*:audio/x-mulaw:*,http-get:*:audio/x-alaw:*,http-get:*:audio/x-raw-float:*,http-get:*:audio/x-raw-int:*,http-get:*:audio/flac:*,http-get:*:audio/x-ape:*,http-get:*:audio/ape:*",
 	[CONNMGR_VAR_CUR_CONN_IDS] = "0",
 	[CONNMGR_VAR_AAT_CONN_STATUS] = "Unknown",
 	[CONNMGR_VAR_AAT_CONN_MGR] = "/",
@@ -200,6 +201,10 @@ static void register_mime_type_internal(const char *mime_type)
 }
 void register_mime_type(const char *mime_type)
 {
+	// just register audio type
+	if (strncmp("audio", mime_type, 5) != 0) {
+		return;
+	}
 	register_mime_type_internal(mime_type);
 	if (strcmp("audio/mpeg", mime_type) == 0) {
 		register_mime_type_internal("audio/x-mpeg");
@@ -249,7 +254,7 @@ int connmgr_init(void)
 	}
 	*p = '\0';
 
-	connmgr_values[CONNMGR_VAR_SINK_PROTO_INFO] = buf;
+	//connmgr_values[CONNMGR_VAR_SINK_PROTO_INFO] = buf;
 	//connmgr_values[CONNMGR_VAR_SRC_PROTO_INFO] = buf;
 	printf("sink buf is %s\n", buf);
 

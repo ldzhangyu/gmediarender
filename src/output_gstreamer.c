@@ -375,7 +375,7 @@ int output_gstreamer_init(void)
 
 	ENTER();
 
-	scan_mime_list();
+	//scan_mime_list();
 
 	play = gst_element_factory_make("playbin2", "play");
 

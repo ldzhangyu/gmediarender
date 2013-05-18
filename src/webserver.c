@@ -91,7 +91,7 @@ int webserver_register_file(const char *path, const char *content_type)
 
 	snprintf(local_fname, PATH_MAX, "%s%s", PKG_DATADIR,
 	         strrchr(path, '/'));
-	printf("local_fname is %s\n", local_fname);
+	deg("local_fname is %s\n", local_fname);
 
 	rc = stat(local_fname, &buf);
 	if (rc) {
@@ -158,7 +158,7 @@ static int webserver_get_info(const char *filename, struct File_Info *info)
 		}
 		virtfile = virtfile->next;
 	}
-        printf("Not found\n");
+        deg("Not found\n");
 out:
 	LEAVE();
 	return result;

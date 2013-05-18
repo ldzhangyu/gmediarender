@@ -24,6 +24,8 @@
 #ifndef _LOGGING_H
 #define _LOGGING_H
 
+#define deg printf
+
 #ifdef ENABLE_TRACING
 #define ENTER() do { fprintf(stderr, "%s: ENTER\n", __FUNCTION__); } while(0)
 #define LEAVE() do { fprintf(stderr, "%s: LEAVE\n", __FUNCTION__); } while(0)

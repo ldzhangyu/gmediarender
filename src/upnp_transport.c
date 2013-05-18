@@ -482,7 +482,7 @@ static int get_media_info(struct action_event *event)
 		rc = -1;
 		goto out;
 	}
-	printf("%s: InstanceID='%s'\n", __FUNCTION__, value);
+	deg("%s: InstanceID='%s'\n", __FUNCTION__, value);
 	free(value);
 
 	rc = upnp_append_variable(event, TRANSPORT_VAR_NR_TRACKS,
@@ -547,7 +547,7 @@ static void notify_lastchange(struct action_event *event, char *value)
 	};
 
 
-	printf("Event: '%s'\n", value);
+	deg("Event: '%s'\n", value);
 	varvalues[0] = value;
 
 
@@ -636,7 +636,7 @@ static int set_avtransport_uri(struct action_event *event)
 
 	ithread_mutex_lock(&transport_mutex);
 
-	printf("%s: CurrentURI='%s'\n", __FUNCTION__, value);
+	deg("%s: CurrentURI='%s'\n", __FUNCTION__, value);
 
 	output_set_uri(value);
 
@@ -648,7 +648,7 @@ static int set_avtransport_uri(struct action_event *event)
 	if (value == NULL) {
 		rc = -1;
 	} else {
-		printf("%s: CurrentURIMetaData='%s'\n", __FUNCTION__,
+		deg("%s: CurrentURIMetaData='%s'\n", __FUNCTION__,
 				value);
 		change_var(event, TRANSPORT_VAR_AV_URI_META, value);
 		free(value);
@@ -967,7 +967,7 @@ static int seek(struct action_event *event)
 		upnp_set_error(event, UPNP_SOAP_E_INVALID_ARGS, "Missing Unit");
 		return -1;
 	}
-	printf("%s: Unit='%s'\n", __FUNCTION__, value);
+	deg("%s: Unit='%s'\n", __FUNCTION__, value);
 	if(strcmp(value, "REL_TIME") == 0)
 	{
 		free(value);
@@ -976,7 +976,7 @@ static int seek(struct action_event *event)
 			upnp_set_error(event, UPNP_SOAP_E_INVALID_ARGS, "Missing Target");
 			return -1;
 		}
-		printf("%s: Target='%s'\n", __FUNCTION__, value);
+		deg("%s: Target='%s'\n", __FUNCTION__, value);
 		p = strtok(value, ":");
 		hour = atoi(p);
 
@@ -1041,7 +1041,7 @@ int set_transport_state(enum _transport_state state)
 			change_var(NULL, TRANSPORT_VAR_TRANSPORT_STATE, "STOPPED");
 			break;
 		default:
-			printf("state error\n");
+			deg("state error\n");
 	}
 }
 

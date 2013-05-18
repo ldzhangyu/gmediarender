@@ -190,9 +190,9 @@ static int handle_subscription_request(struct Upnp_Subscription_Request
 	ENTER();
 
 
-	printf("Subscription request\n");
-	printf("  %s\n", sr_event->UDN);
-	printf("  %s\n", sr_event->ServiceId);
+	deg("Subscription request\n");
+	deg("  %s\n", sr_event->UDN);
+	deg("  %s\n", sr_event->ServiceId);
 
 	srv = find_service(upnp_device, sr_event->ServiceId);
 	if (srv == NULL) {
@@ -213,7 +213,7 @@ static int handle_subscription_request(struct Upnp_Subscription_Request
 	}
 	eventvar_names = malloc((eventVarCount+1) * sizeof(const char *));
 	eventvar_values = malloc((eventVarCount+1) * sizeof(const char *));
-	printf("%d evented variables\n", eventVarCount);
+	deg("%d evented variables\n", eventVarCount);
 
 	for(i=0; i<srv->variable_count; i++) {
 		struct var_meta *metaEntry;
@@ -221,7 +221,7 @@ static int handle_subscription_request(struct Upnp_Subscription_Request
 		if (metaEntry->sendevents == SENDEVENT_YES) {
 			eventvar_names[eventVarIdx] = srv->variable_names[i];
 			eventvar_values[eventVarIdx] = xmlescape(srv->variable_values[i], 0);
-			printf("Evented: '%s' == '%s'\n",
+			deg("Evented: '%s' == '%s'\n",
 					eventvar_names[eventVarIdx],
 					eventvar_values[eventVarIdx]);
 			eventVarIdx++;
@@ -275,7 +275,7 @@ static int handle_action_request(struct Upnp_Action_Request *ar_event)
 		event.status = 0;
 		event.service = event_service;
 
-		printf("action %s\n", event_action->action_name);
+		deg("action %s\n", event_action->action_name);
 		rc = (event_action->callback) (&event);
 		if (rc == 0) {
 			ar_event->ErrCode = UPNP_E_SUCCESS;
@@ -314,15 +314,15 @@ static int event_handler(Upnp_EventType EventType, void *event,
 			handle_action_request(event);
 			break;
 		case UPNP_CONTROL_GET_VAR_REQUEST:
-			printf("NOT IMPLEMENTED: control get variable request\n");
+			deg("NOT IMPLEMENTED: control get variable request\n");
 			break;
 		case UPNP_EVENT_SUBSCRIPTION_REQUEST:
-			printf("event subscription request\n");
+			deg("event subscription request\n");
 			handle_subscription_request(event);
 			break;
 
 		default:
-			printf("Unknown event type: %d\n", EventType);
+			deg("Unknown event type: %d\n", EventType);
 			break;
 	}
 	return 0;
@@ -338,7 +338,7 @@ void yu_write_fiile(char *buf, int i)
 	strcat(dir, file);
 	if(NULL == (fp = fopen(dir, "w+")))
 	{
-		printf("open error\n");
+		deg("open error\n");
 		return;
 	}
 	fprintf(fp, "%s", buf);
@@ -373,7 +373,7 @@ int upnp_device_init(struct device *device_def, char *ip_address)
 	/* generate and register service schemas in web server */
 	for (i=0; (srv = upnp_device->services[i]); i++) {
 		buf = upnp_get_scpd(srv);
-		printf("registering '%s'\n", srv->scpd_url);
+		deg("registering '%s'\n", srv->scpd_url);
 		yu_write_fiile(buf, i);
 		webserver_register_buf(srv->scpd_url,buf,"text/xml");
 	}
@@ -381,22 +381,22 @@ int upnp_device_init(struct device *device_def, char *ip_address)
 
 	rc = UpnpInit(ip_address, port);
 	if (UPNP_E_SUCCESS != rc) {
-		printf("UpnpInit() Error: %d\n", rc);
+		deg("UpnpInit() Error: %d\n", rc);
 		goto upnp_err_out;
 	}
 	rc = UpnpEnableWebserver(TRUE);
 	if (UPNP_E_SUCCESS != rc) {
-		printf("UpnpEnableWebServer() Error: %d\n", rc);
+		deg("UpnpEnableWebServer() Error: %d\n", rc);
 		goto upnp_err_out;
 	}
 	rc = UpnpSetVirtualDirCallbacks(&virtual_dir_callbacks);
 	if (UPNP_E_SUCCESS != rc) {
-		printf("UpnpSetVirtualDirCallbacks() Error: %d\n", rc);
+		deg("UpnpSetVirtualDirCallbacks() Error: %d\n", rc);
 		goto upnp_err_out;
 	}
 	rc = UpnpAddVirtualDir("/upnp");
 	if (UPNP_E_SUCCESS != rc) {
-		printf("UpnpAddVirtualDir() Error: %d\n", rc);
+		deg("UpnpAddVirtualDir() Error: %d\n", rc);
 		goto upnp_err_out;
 	}
 
@@ -407,7 +407,7 @@ int upnp_device_init(struct device *device_def, char *ip_address)
 			&event_handler, &device_def,
 			&device_handle);
 	if (UPNP_E_SUCCESS != rc) {
-		printf("UpnpRegisterRootDevice2() Error: %d\n", rc);
+		deg("UpnpRegisterRootDevice2() Error: %d\n", rc);
 		goto upnp_err_out;
 	}
 

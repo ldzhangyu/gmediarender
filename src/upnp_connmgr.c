@@ -192,7 +192,7 @@ static void register_mime_type_internal(const char *mime_type)
 			return;
 		}
 	}
-	printf("Registering support for '%s'\n", mime_type);
+	deg("Registering support for '%s'\n", mime_type);
 
 	entry = malloc(sizeof(struct mime_type));
 	entry->mime_type = strdup(mime_type);
@@ -256,7 +256,7 @@ int connmgr_init(void)
 
 	//connmgr_values[CONNMGR_VAR_SINK_PROTO_INFO] = buf;
 	//connmgr_values[CONNMGR_VAR_SRC_PROTO_INFO] = buf;
-	printf("sink buf is %s\n", buf);
+	deg("sink buf is %s\n", buf);
 
 	result = 0;
 out:
@@ -303,7 +303,7 @@ static int get_current_conn_info(struct action_event *event)
 		rc = -1;
 		goto out;
 	}
-	printf("%s: ConnectionID='%s'\n", __FUNCTION__, value);
+	deg("%s: ConnectionID='%s'\n", __FUNCTION__, value);
 	free(value);
 
 	rc = upnp_append_variable(event, CONNMGR_VAR_AAT_RCS_ID, "RcsID");

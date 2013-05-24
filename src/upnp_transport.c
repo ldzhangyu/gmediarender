@@ -574,10 +574,19 @@ static void change_var(struct action_event *event, int varnum,
 		return;
 	}
 
+	if(strlen(new_value) > strlen(transport_values[varnum])){
+		printf("dayu %d\n", strlen(new_value));
+		transport_values[varnum] = (char *)realloc(transport_values[varnum], strlen(new_value)+1);
+	}
+	strncpy(transport_values[varnum], new_value, strlen(new_value));
+		//printf("111\n");
+
+	/*
 	if (transport_values[varnum]) {
 	      free(transport_values[varnum]);
 	}
 	transport_values[varnum] = strdup(new_value);
+	*/
 	if(event != NULL)
 	{
 		asprintf(&buf,
@@ -586,6 +595,7 @@ static void change_var(struct action_event *event, int varnum,
 		notify_lastchange(event, buf);
 		free(buf);
 	}
+		//printf("222\n");
 
 	LEAVE();
 
@@ -643,6 +653,7 @@ static int set_avtransport_uri(struct action_event *event)
 
 	change_var(event, TRANSPORT_VAR_AV_URI, value);
 	free(value);
+	printf("3333\n");
 
 	value = upnp_get_string(event, "CurrentURIMetaData");
 	if (value == NULL) {
@@ -653,6 +664,7 @@ static int set_avtransport_uri(struct action_event *event)
 		change_var(event, TRANSPORT_VAR_AV_URI_META, value);
 		free(value);
 	}
+	printf("4444\n");
 
 	ithread_mutex_unlock(&transport_mutex);
 
@@ -767,12 +779,14 @@ static int get_position_info(struct action_event *event)
 
 	output_position(time);
 
-	change_var(NULL, TRANSPORT_VAR_REL_TIME_POS, time);
+	//change_var(NULL, TRANSPORT_VAR_REL_TIME_POS, time);
 
-	rc = upnp_append_variable(event, TRANSPORT_VAR_REL_TIME_POS,
-			"RelTime");
+	rc = upnp_add_response(event, "RelTime", time);
+		/*
+	rc = upnp_append_variable(event, TRANSPORT_VAR_REL_TIME_POS, "RelTime");
 	if (rc)
 		goto out;
+		*/
 
 	rc = upnp_append_variable(event, TRANSPORT_VAR_ABS_TIME_POS,
 			"AbsTime");

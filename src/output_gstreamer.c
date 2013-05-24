@@ -139,7 +139,7 @@ static char *gsuri = NULL;
 void output_set_uri(const char *uri)
 {
 	ENTER();
-	printf("%s: setting uri to '%s'\n", __FUNCTION__, uri);
+	deg("%s: setting uri to '%s'\n", __FUNCTION__, uri);
 	if (gsuri != NULL)
 	{
 		free(gsuri);
@@ -154,13 +154,13 @@ int output_play(void)
 	ENTER();
 	if (gst_element_set_state(play, GST_STATE_READY) ==
 	    GST_STATE_CHANGE_FAILURE) {
-		printf("setting play state failed\n");
+		deg("setting play state failed\n");
                 goto out;
 	}
 	g_object_set(G_OBJECT(play), "uri", gsuri, NULL);
 	if (gst_element_set_state(play, GST_STATE_PLAYING) ==
 	    GST_STATE_CHANGE_FAILURE) {
-		printf("setting play state failed\n");
+		deg("setting play state failed\n");
 		goto out;
 	} 
 	result = 0;
@@ -174,7 +174,7 @@ int output_play_continue(void)
 	int result = -1;
 	ENTER();
 	if (gst_element_set_state(play, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
-		printf("setting play state failed\n");
+		deg("setting play state failed\n");
 		goto out;
 	} 
 	result = 0;
@@ -212,7 +212,7 @@ int output_position(char *time)
 	gint64 pos, len;
 
 	if (gst_element_query_position (play, &fmt, &pos) && gst_element_query_duration (play, &fmt, &len)) {
-		//printf ("Time: %" GST_TIME_FORMAT " / %" GST_TIME_FORMAT "\r", GST_TIME_ARGS (pos), GST_TIME_ARGS (len));
+		//deg ("Time: %" GST_TIME_FORMAT " / %" GST_TIME_FORMAT "\r", GST_TIME_ARGS (pos), GST_TIME_ARGS (len));
 		sprintf(time, UPNP_TIME_FORMAT, GST_TIME_ARGS (pos));
 	}
 
@@ -225,7 +225,7 @@ int output_seek(int time_seconds)
 	if (!gst_element_seek (play, 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH,
 				GST_SEEK_TYPE_SET, GST_SECOND*time_seconds,
 				GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE)) {
-		printf ("Seek failed!\n");
+		deg ("Seek failed!\n");
 		return -1;
 	}
 	return 0;
@@ -234,7 +234,7 @@ int output_seek(int time_seconds)
 int output_get_volume(gdouble *volume)
 {
 	g_object_get (G_OBJECT (play), "volume", volume, NULL);
-	printf("volume %f\n", *volume);
+//	deg("volume %f\n", *volume);
 	return 0;
 }
 
@@ -248,7 +248,7 @@ gboolean output_get_mute(void)
 {
 	gboolean mute = 0;
 	g_object_get (G_OBJECT (play), "mute", &mute, NULL);
-	printf("mute %d\n", mute);
+	deg("mute %d\n", mute);
 	return 0;
 }
 
@@ -385,13 +385,13 @@ int output_gstreamer_init(void)
 
 	if(audiosink != NULL){
 		GstElement *sink = NULL;
-		printf("Setting audio sink to %s\n", audiosink);
+		deg("Setting audio sink to %s\n", audiosink);
 		sink = gst_element_factory_make (audiosink, "sink");
 		g_object_set (G_OBJECT (play), "audio-sink", sink, NULL);
 	}
 	if(videosink != NULL){
 		GstElement *sink = NULL;
-		printf("Setting video sink to %s\n", videosink);
+		deg("Setting video sink to %s\n", videosink);
 		sink = gst_element_factory_make (videosink, "sink");
 		g_object_set (G_OBJECT (play), "video-sink", sink, NULL);
 	}

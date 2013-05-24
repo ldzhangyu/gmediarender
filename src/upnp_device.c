@@ -374,7 +374,7 @@ int upnp_device_init(struct device *device_def, char *ip_address)
 	for (i=0; (srv = upnp_device->services[i]); i++) {
 		buf = upnp_get_scpd(srv);
 		deg("registering '%s'\n", srv->scpd_url);
-		yu_write_fiile(buf, i);
+		//yu_write_fiile(buf, i);
 		webserver_register_buf(srv->scpd_url,buf,"text/xml");
 	}
 

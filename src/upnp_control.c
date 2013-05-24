@@ -37,6 +37,7 @@
 #include "upnp_control.h"
 #include "upnp_device.h"
 #include <gst/gst.h>
+#include "logging.h"
 
 //#define CONTROL_SERVICE "urn:upnp-org:serviceId:RenderingControl"
 #define CONTROL_SERVICE "urn:schemas-upnp-org:service:RenderingControl"
@@ -471,7 +472,7 @@ static int cmd_obtain_variable(struct action_event *event, int varnum,
 	if (value == NULL) {
 		return -1;
 	}
-	printf("%s: InstanceID='%s'\n", __FUNCTION__, value);
+	deg("%s: InstanceID='%s'\n", __FUNCTION__, value);
 	free(value);
 
 	return upnp_append_variable(event, varnum, paramname);
@@ -569,13 +570,13 @@ static int set_mute(struct action_event *event)
 	/* FIXME - Channel */
 	gboolean mute = 0;
 	char *value = NULL;
-	printf("mute %d\n", mute);
+	deg("mute %d\n", mute);
 
 	value = upnp_get_string(event, "DesiredMute");
 	if (value == NULL) {
 		return -1;
 	}
-	printf("mute %s\n", value);
+	deg("mute %s\n", value);
 	set_var(CONTROL_VAR_MUTE, value);
 	mute = atoi(value);
 	output_set_mute(mute);
@@ -587,20 +588,20 @@ static int get_volume(struct action_event *event)
 {
 	/* FIXME - Channel */
 	gdouble volume;
-	gdouble volume2 = 1.3;
+//	gdouble volume2 = 1.3;
 	int int_volume = 0;
-	int int_volume2 = 0;
+//	int int_volume2 = 0;
 	char str_volume[10] = "";
 
 	//gst_stream_volume_get_volume(&volume, GST_STREAM_VOLUME_FORMAT_LINEAR);
 	output_get_volume(&volume);
-	volume2 = volume * 10.0;
-	printf("f volume %f\n", volume2);
-	int_volume = DOUBLE_INT(volume2);
-	int_volume2 = (int)(volume2 * 10.0);
-	//printf("voulme %s\n", str_volume);
-	printf("int_volume %d\n", int_volume);
-	printf("int_volume2 %d\n", int_volume2);
+	//volume2 = volume * 10.0;
+//	deg("f volume %f\n", volume2);
+	int_volume = DOUBLE_INT(volume * 10.0);
+	//int_volume2 = (int)(volume2 * 10.0);
+	//deg("voulme %s\n", str_volume);
+//	deg("int_volume %d\n", int_volume);
+//	deg("int_volume2 %d\n", int_volume2);
 	sprintf(str_volume,  "%d", int_volume);
 
 	set_var(CONTROL_VAR_VOLUME, str_volume);
@@ -618,7 +619,7 @@ static int set_volume(struct action_event *event)
 	if (value == NULL) {
 		return -1;
 	}
-	printf("volume %s\n", value);
+	deg("volume %s\n", value);
 	set_var(CONTROL_VAR_VOLUME, value);
 	int_volume = atoi(value);
 	output_set_volume(((gdouble)int_volume)/10);
@@ -650,10 +651,17 @@ static void set_var(int varnum, char *new_value)
 		return;
 	}
 
+	if(strlen(new_value) > strlen(control_values[varnum])){
+		control_values[varnum] = (char *)realloc(control_values[varnum], strlen(new_value)+1);
+	}
+	strcpy(control_values[varnum], new_value);
+
+	/*
 	if (control_values[varnum]) {
 	      free(control_values[varnum]);
 	}
 	control_values[varnum] = strdup(new_value);
+	*/
 
 	return;
 }

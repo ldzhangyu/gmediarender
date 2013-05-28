@@ -223,7 +223,7 @@ static char *control_values_const[] = {
 	[CONTROL_VAR_HOR_KEYSTONE] = "0",
 	[CONTROL_VAR_VER_KEYSTONE] = "0",
 	[CONTROL_VAR_MUTE] = "0",
-	[CONTROL_VAR_VOLUME] = "0",
+	[CONTROL_VAR_VOLUME] = "10",
 	[CONTROL_VAR_VOLUME_DB] = "0",
 	[CONTROL_VAR_LOUDNESS] = "0",
 	[CONTROL_VAR_UNKNOWN] = NULL
@@ -466,6 +466,7 @@ static struct argument **argument_list[] = {
 static int cmd_obtain_variable(struct action_event *event, int varnum,
 		char *paramname)
 {
+	/*
 	char *value;
 
 	value = upnp_get_string(event, "InstanceID");
@@ -474,6 +475,7 @@ static int cmd_obtain_variable(struct action_event *event, int varnum,
 	}
 	deg("%s: InstanceID='%s'\n", __FUNCTION__, value);
 	free(value);
+	*/
 
 	return upnp_append_variable(event, varnum, paramname);
 }

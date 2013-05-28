@@ -295,42 +295,45 @@ static gboolean my_bus_callback(GstBus * bus, GstMessage * msg,
 	GstMessageType msgType;
 	GstObject *msgSrc;
 	gchar *msgSrcName;
+	gchar *debug;
+	GError *err;
+	GstState oldstate, newstate, pending;
 
 	msgType = GST_MESSAGE_TYPE(msg);
 	msgSrc = GST_MESSAGE_SRC(msg);
 	msgSrcName = GST_OBJECT_NAME(msgSrc);
 
 	switch (msgType) {
-	case GST_MESSAGE_EOS:
-		g_print("GStreamer: %s: End-of-stream\n", msgSrcName);
-		set_transport_state(TRANSPORT_STOPPED);
-		break;
-	case GST_MESSAGE_ERROR:{
-			gchar *debug;
-			GError *err;
+		case GST_MESSAGE_EOS:
+//			g_print("GStreamer: %s: End-of-stream\n", msgSrcName);
+			set_transport_state(TRANSPORT_STOPPED);
+			break;
+		case GST_MESSAGE_ERROR:
 
 			gst_message_parse_error(msg, &err, &debug);
 			g_free(debug);
 
-			g_print("GStreamer: %s: Error: %s\n", msgSrcName, err->message);
+//			g_print("GStreamer: %s: Error: %s\n", msgSrcName, err->message);
 			g_error_free(err);
 
 			break;
-		}
-	case GST_MESSAGE_STATE_CHANGED:{
-			GstState oldstate, newstate, pending;
+
+		case GST_MESSAGE_STATE_CHANGED:
 			gst_message_parse_state_changed(msg, &oldstate, &newstate, &pending);
-			g_print("GStreamer: %s: State change: OLD: '%s', NEW: '%s', PENDING: '%s'\n",
-			        msgSrcName,
-			        gststate_get_name(oldstate),
-			        gststate_get_name(newstate),
-			        gststate_get_name(pending));
+			/*g_print("GStreamer: %s: State change: OLD: '%s', NEW: '%s', PENDING: '%s'\n",
+					msgSrcName,
+					gststate_get_name(oldstate),
+					gststate_get_name(newstate),
+					gststate_get_name(pending));*/
 			break;
-		}
-	default:
-		g_print("GStreamer: %s: unhandled message type %d (%s)\n",
-		        msgSrcName, msgType, gst_message_type_get_name(msgType));
-		break;
+
+		case GST_MESSAGE_BUFFERING:
+			break;
+
+		default:
+			/*g_print("GStreamer: %s: unhandled message type 0x%x (%s)\n",
+					msgSrcName, msgType, gst_message_type_get_name(msgType));*/
+			break;
 	}
 
 	return TRUE;

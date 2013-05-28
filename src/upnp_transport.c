@@ -575,10 +575,10 @@ static void change_var(struct action_event *event, int varnum,
 	}
 
 	if(strlen(new_value) > strlen(transport_values[varnum])){
-		printf("dayu %d\n", strlen(new_value));
+	//	printf("dayu %d\n", strlen(new_value));
 		transport_values[varnum] = (char *)realloc(transport_values[varnum], strlen(new_value)+1);
 	}
-	strncpy(transport_values[varnum], new_value, strlen(new_value));
+	strcpy(transport_values[varnum], new_value);
 		//printf("111\n");
 
 	/*
@@ -713,6 +713,7 @@ static int get_transport_info(struct action_event *event)
 
 	rc = upnp_append_variable(event, TRANSPORT_VAR_TRANSPORT_STATE,
 			"CurrentTransportState");
+	deg("state %s\n", transport_values[TRANSPORT_VAR_TRANSPORT_STATE]);
 	if (rc)
 		goto out;
 
@@ -778,6 +779,7 @@ static int get_position_info(struct action_event *event)
 		goto out;
 
 	output_position(time);
+	deg("time: %s\n", time);
 
 	//change_var(NULL, TRANSPORT_VAR_REL_TIME_POS, time);
 
@@ -825,6 +827,7 @@ out:
 
 static int stop(struct action_event *event)
 {
+	int rc = 0;
 	ENTER();
 
 	if (obtain_instanceid(event, NULL)) {
@@ -840,10 +843,10 @@ static int stop(struct action_event *event)
 		case TRANSPORT_PAUSED_RECORDING:
 		case TRANSPORT_RECORDING:
 		case TRANSPORT_PAUSED_PLAYBACK:
-			output_stop();
 			transport_state = TRANSPORT_STOPPED;
 			change_var(event, TRANSPORT_VAR_TRANSPORT_STATE,
 					"STOPPED");
+			output_stop();
 			// Set TransportPlaySpeed to '1'
 			break;
 
@@ -912,6 +915,7 @@ static int play(struct action_event *event)
 
 			break;
 	}
+
 	ithread_mutex_unlock(&transport_mutex);
 
 	LEAVE();

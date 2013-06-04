@@ -37,5 +37,6 @@ int output_get_volume(gdouble *volume);
 int output_set_volume(gdouble volume);
 gboolean output_get_mute(void);
 int output_set_mute(gboolean mute);
+int output_duration(char *time);
 
 #endif /*  _OUTPUT_GSTREAMER_H */

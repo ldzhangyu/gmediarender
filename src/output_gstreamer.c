@@ -209,9 +209,9 @@ int output_pause(void)
 int output_position(char *time)
 {
 	GstFormat fmt = GST_FORMAT_TIME;
-	gint64 pos, len;
+	gint64 pos;
 
-	if (gst_element_query_position (play, &fmt, &pos) && gst_element_query_duration (play, &fmt, &len)) {
+	if (gst_element_query_position (play, &fmt, &pos)) {
 		//deg ("Time: %" GST_TIME_FORMAT " / %" GST_TIME_FORMAT "\r", GST_TIME_ARGS (pos), GST_TIME_ARGS (len));
 		sprintf(time, UPNP_TIME_FORMAT, GST_TIME_ARGS (pos));
 	}
@@ -219,6 +219,26 @@ int output_position(char *time)
 	/* call me again */
 	return 0;
 }
+
+int output_duration(char *time)
+{
+	GstFormat fmt = GST_FORMAT_TIME;
+	gint64 len, pos;
+	//
+	//if (TRUE == gst_element_query_duration (play, &fmt, &len)) {
+	if (gst_element_query_position (play, &fmt, &pos) && gst_element_query_duration (play, &fmt, &len)) {
+		//deg ("Time: %" GST_TIME_FORMAT "\r", GST_TIME_ARGS (len));
+		deg ("Time: %" GST_TIME_FORMAT " / %" GST_TIME_FORMAT "\r", GST_TIME_ARGS (pos), GST_TIME_ARGS (len));
+		sprintf(time, UPNP_TIME_FORMAT, GST_TIME_ARGS (len));
+	}
+	else {
+		deg("duration error\n");
+	}
+
+	/* call me again */
+	return 0;
+}
+
 
 int output_seek(int time_seconds)
 {

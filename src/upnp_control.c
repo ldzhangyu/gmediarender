@@ -46,7 +46,7 @@
 #define CONTROL_CONTROL_URL "/upnp/control/rendercontrol1"
 #define CONTROL_EVENT_URL "/upnp/event/rendercontrol1"
 
-static void set_var(int varnum, char *new_value);
+static void set_var(struct action_event *event, int varnum, char *new_value);
 
 
 typedef enum {
@@ -223,7 +223,7 @@ static char *control_values_const[] = {
 	[CONTROL_VAR_HOR_KEYSTONE] = "0",
 	[CONTROL_VAR_VER_KEYSTONE] = "0",
 	[CONTROL_VAR_MUTE] = "0",
-	[CONTROL_VAR_VOLUME] = "10",
+	[CONTROL_VAR_VOLUME] = "100",
 	[CONTROL_VAR_VOLUME_DB] = "0",
 	[CONTROL_VAR_LOUDNESS] = "0",
 	[CONTROL_VAR_UNKNOWN] = NULL
@@ -563,7 +563,7 @@ static int get_mute(struct action_event *event)
 	/* FIXME - Channel */
 	gboolean mute = 0;
 	mute = output_get_mute();
-	set_var(CONTROL_VAR_MUTE, mute);
+	//set_var(NULL, CONTROL_VAR_MUTE, mute);
 	return cmd_obtain_variable(event, CONTROL_VAR_MUTE, "CurrentMute");
 }
 
@@ -579,7 +579,7 @@ static int set_mute(struct action_event *event)
 		return -1;
 	}
 	deg("mute %s\n", value);
-	set_var(CONTROL_VAR_MUTE, value);
+	set_var(NULL, CONTROL_VAR_MUTE, value);
 	mute = atoi(value);
 	output_set_mute(mute);
 	free(value);
@@ -599,14 +599,14 @@ static int get_volume(struct action_event *event)
 	output_get_volume(&volume);
 	//volume2 = volume * 10.0;
 //	deg("f volume %f\n", volume2);
-	int_volume = DOUBLE_INT(volume * 10.0);
+	int_volume = DOUBLE_INT(volume * 100.0);
 	//int_volume2 = (int)(volume2 * 10.0);
 	//deg("voulme %s\n", str_volume);
 //	deg("int_volume %d\n", int_volume);
 //	deg("int_volume2 %d\n", int_volume2);
 	sprintf(str_volume,  "%d", int_volume);
 
-	set_var(CONTROL_VAR_VOLUME, str_volume);
+	set_var(NULL, CONTROL_VAR_VOLUME, str_volume);
 	return cmd_obtain_variable(event, CONTROL_VAR_VOLUME,
 			"CurrentVolume");
 }
@@ -622,9 +622,9 @@ static int set_volume(struct action_event *event)
 		return -1;
 	}
 	deg("volume %s\n", value);
-	set_var(CONTROL_VAR_VOLUME, value);
+	set_var(event, CONTROL_VAR_VOLUME, value);
 	int_volume = atoi(value);
-	output_set_volume(((gdouble)int_volume)/10);
+	output_set_volume(((gdouble)int_volume)/100);
 	free(value);
 }
 
@@ -642,7 +642,27 @@ static int get_loudness(struct action_event *event)
 			"CurrentLoudness");
 }
 
-static void set_var(int varnum, char *new_value)
+static void notify_lastchange(struct action_event *event, char *value)
+{
+	const char *varnames[] = {
+		"LastChange",
+		NULL
+	};
+	char *varvalues[] = {
+		NULL, NULL
+	};
+
+
+	deg("Event: '%s'\n", value);
+	varvalues[0] = value;
+
+	//control_values[TRANSPORT_VAR_LAST_CHANGE] = value;
+	UpnpNotify(device_handle, event->request->DevUDN,
+			event->request->ServiceID, varnames,
+			(const char **) varvalues, 1);
+}
+
+static void set_var(struct action_event *event, int varnum, char *new_value)
 {
 	char *buf;
 
@@ -658,6 +678,16 @@ static void set_var(int varnum, char *new_value)
 	}
 	strcpy(control_values[varnum], new_value);
 
+	
+	/*
+	if(event != NULL)
+	{
+		asprintf(&buf,
+				"<Event xmlns = \"urn:schemas-upnp-org:metadata-1-0/AVT/\"><InstanceID val=\"0\"><%s val=\"%s\"/></InstanceID></Event>",
+				control_variables[varnum], xmlescape(control_variables[varnum], 1));
+		notify_lastchange(event, buf);
+		free(buf);
+	}*/
 	/*
 	if (control_values[varnum]) {
 	      free(control_values[varnum]);

@@ -763,8 +763,11 @@ static int get_position_info(struct action_event *event)
 	if (rc)
 		goto out;
 
-	rc = upnp_append_variable(event, TRANSPORT_VAR_CUR_TRACK_DUR,
-			"TrackDuration");
+	output_duration(time);
+	deg("duration time: %s\n", time);
+
+	rc = upnp_add_response(event, "TrackDuration", time);
+	//rc = upnp_append_variable(event, TRANSPORT_VAR_CUR_TRACK_DUR, "TrackDuration");
 	if (rc)
 		goto out;
 
